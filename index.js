@@ -15,7 +15,7 @@ app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
 app.use(cors()); // Enable CORS
 
 // Database connection
-const mongoURI = process.env.MONGO_URI || "undefined";
+const mongoURI = process.env.MONGO_URI;
 mongoose
   .connect(mongoURI)
   .then(() => console.log("MongoDB connected"))

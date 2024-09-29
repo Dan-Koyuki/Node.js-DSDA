@@ -2,7 +2,8 @@ const { default: mongoose } = require("mongoose");
 
 const resultScheme = new mongoose.Schema(
   {
-    // another field for result
+    result: {type: String, required: true},
+    resultType: {type: String, required: true},
   },
   { timestamps: true }
 );
