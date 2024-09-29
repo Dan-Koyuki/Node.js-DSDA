@@ -2,8 +2,8 @@ const { default: mongoose } = require("mongoose");
 
 const resultScheme = new mongoose.Schema(
   {
-    result: {type: String, required: true},
-    resultType: {type: String, required: true},
+    result: {type: String, required: true},     // Hasil Kerja
+    resultType: {type: String, required: true}, // Satuan Hasil Kerja
   },
   { timestamps: true }
 );
