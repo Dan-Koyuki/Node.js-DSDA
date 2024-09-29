@@ -2,7 +2,6 @@ import mongoose from "mongoose";
 
 const roleSchema = new mongoose.Schema(
   {
-    position: {type: Number, required: true},
     name: { type: String, required: true },
     data: {type: mongoose.Schema.Types.ObjectId, ref: "Data"}, // Data Jabatan
     job: {type: mongoose.Schema.Types.ObjectId, ref:"Job"}, // Tugas Pokok
@@ -17,6 +16,7 @@ const roleSchema = new mongoose.Schema(
     hope: {type: mongoose.Schema.Types.ObjectId, ref:"Hope"}, // Prestasi yang Diharapkan
     class: {type: mongoose.Schema.Types.ObjectId, ref:"Class"}, // Kelas Jabatan
     sub: [{ type: mongoose.Schema.Types.ObjectId, ref: "Role" }],
+    isTopLevel: { type: Boolean, default: false }
   },
   { timestamps: true }
 );
