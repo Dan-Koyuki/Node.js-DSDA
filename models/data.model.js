@@ -1,4 +1,4 @@
-const { default: mongoose } = require("mongoose");
+import mongoose from "mongoose";
 
 const dataScheme = new mongoose.Schema({
   roleCode: { type: String, required: true },       // Kode Jabatan

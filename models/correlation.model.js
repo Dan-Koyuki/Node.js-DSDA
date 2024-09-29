@@ -1,10 +1,11 @@
-const { default: mongoose } = require("mongoose");
+import mongoose from "mongoose";
 
+// Korelasi Jabatan
 const correlationScheme = new mongoose.Schema(
   {
-    roleName: {type: String, required: true},
-    unit: {type: String, required: true},
-    term: {type: String, required: true}
+    roleName: {type: String, required: true},   // Nama Jabatan 
+    unit: {type: String, required: true},       // Unit Kerja/Instansi
+    term: {type: String, required: true}        // Dalam Hal
   },
   { timestamps: true }
 );

@@ -1,9 +1,10 @@
-const { default: mongoose } = require("mongoose");
+import mongoose from "mongoose";
 
+// Bahan Kerja
 const materialScheme = new mongoose.Schema(
   {
-    material: {type: String, required: true},
-    usage: {type: String, required:true}
+    material: {type: String, required: true}, // Uraian Bahan Kerja
+    usage: {type: String, required:true}      // Penggunaan Dalam Tugas
   },
   { timestamps: true }
 );

@@ -1,8 +1,8 @@
-const { default: mongoose } = require("mongoose");
+import mongoose from "mongoose";
 
 const responsibilityScheme = new mongoose.Schema(
   {
-    desc: {type: String, required: true}
+    desc: {type: String, required: true}  // Uraian Tanggung Jawab
   },
   { timestamps: true }
 );

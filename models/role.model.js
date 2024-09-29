@@ -1,7 +1,8 @@
-const { default: mongoose } = require("mongoose");
+import mongoose from "mongoose";
 
 const roleSchema = new mongoose.Schema(
   {
+    position: {type: Number, required: true},
     name: { type: String, required: true },
     data: {type: mongoose.Schema.Types.ObjectId, ref: "Data"}, // Data Jabatan
     job: {type: mongoose.Schema.Types.ObjectId, ref:"Job"}, // Tugas Pokok

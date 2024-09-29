@@ -1,5 +1,6 @@
-const { default: mongoose } = require("mongoose");
+import mongoose from "mongoose";
 
+// Wewenang
 const authorityScheme = new mongoose.Schema(
   {
     authorDesc: {type: String, required: true}  // Deskripsi Wewenang

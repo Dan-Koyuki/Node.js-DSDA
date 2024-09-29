@@ -1,8 +1,9 @@
-const { default: mongoose } = require("mongoose");
+import mongoose from "mongoose";
 
+// Kelas Jabatan
 const classScheme = new mongoose.Schema(
   {
-    jobClass: {type: String, required: true}
+    jobClass: {type: String, required: true}  // Kelas Kerja yang Diharapkan
   },
   { timestamps: true }
 );
