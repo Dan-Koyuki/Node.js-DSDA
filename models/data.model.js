@@ -10,7 +10,7 @@ const dataScheme = new mongoose.Schema({
   advisor: { type: String, required: true },        // Pengawas
   implementer: { type: String, required: true},     // Pelaksana
   functional: { type: String, required: true},      // Jabatan Fungsional
-  overview: { type: String, requierd: true}         // Ikhtisar Jabatan
+  overview: { type: String, required: true}         // Ikhtisar Jabatan
 }, {timestamps: true});
 
 const Data = mongoose.model("Data", dataScheme);

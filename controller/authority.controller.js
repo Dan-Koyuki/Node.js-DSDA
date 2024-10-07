@@ -18,7 +18,7 @@ class AuthorityController {
 
     update = async ({data, id}) => {
         if (!id) {
-            return this.create(data.desc);
+            return this.create({desc: data.desc});
         } else {
             // logic if id exist
             let authority = await Authority.findById(id);

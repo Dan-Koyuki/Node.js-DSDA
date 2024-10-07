@@ -1,6 +1,7 @@
 import Role from "../models/role.model.js";
 import CustomError from "../utility/customError.js"
 import authorityController from "./authority.controller.js";
+import classController from "./class.controller.js";
 
 class RoleController {
     /**
@@ -92,7 +93,7 @@ class RoleController {
     
         const updateRoute = {
             AU: authorityController.update,   // function to update Authority
-            CL: () => {},   // function to update Class
+            CL: classController.update,   // function to update Class
             CR: () => {},   // function to update Correlation
             DT: () => {},   // function to update Data
             HO: () => {},   // function to update Hope
