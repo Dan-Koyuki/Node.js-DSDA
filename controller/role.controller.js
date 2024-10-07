@@ -1,7 +1,13 @@
 import Role from "../models/role.model.js";
 import CustomError from "../utility/customError.js"
+import authorityController from "./authority.controller.js";
 
 class RoleController {
+    /**
+     * create a new Jabatan in Sidebar Menu
+     * @param {name} Nama Jabatan
+     * @returns 
+     */
     add = async ({name}) => {
         if (!name) {
             throw new CustomError("Nama tidak boleh kosong!", 400);
@@ -27,6 +33,12 @@ class RoleController {
         }
     }
     
+    /**
+     * 
+     * @param {parentName} Nama Jabatan yang bertindak sebagai atasan
+     * @param {subName} Nama Jabatan yang akan di tambahkan dibawah Jabatan Atasan
+     * @returns 
+     */
     addSub = async ({parentName, subName}) => {
         if (!parentName) {
             throw new CustomError("Nama tidak boleh kosong!", 400);
@@ -72,6 +84,56 @@ class RoleController {
         }
     }
 
+    editRole = async ({name, updateInfo}) => {
+        let role = await Role.findOne({name: name});
+        if (!role) {
+            throw new CustomError("Jabatan tidak ditemukan!", 404);  // Better to throw an error if the role doesn't exist
+        }
+    
+        const updateRoute = {
+            AU: authorityController.update,   // function to update Authority
+            CL: () => {},   // function to update Class
+            CR: () => {},   // function to update Correlation
+            DT: () => {},   // function to update Data
+            HO: () => {},   // function to update Hope
+            JB: () => {},   // function to update Job
+            MT: () => {},   // function to update Material
+            RE: () => {},   // function to update Requirement
+            RS: () => {},   // function to update Responsibility
+            RT: () => {},   // function to update Result
+            RK: () => {},   // function to update Risk
+            ST: () => {},   // function to update Set
+        };
+    
+        const updateFunction = updateRoute[updateInfo.key];
+        const updateFieldID = role[updateInfo.name];
+        
+        let updateResult;
+    
+        if (updateFunction) {
+            updateResult = await updateFunction({data: updateInfo.data, id: updateFieldID});  // Pass correct params
+        } else {
+            throw new CustomError("Invalid update key!", 400);
+        }
+    
+        role[updateInfo.name] = updateResult._id;  // Update the specific field with the result
+    
+        await role.save();  // Save the updated role
+    
+        return {
+            statusCode: 200,
+            data: {
+                message: "Update Complete!",
+                role: role._id
+            }
+        };
+    };
+
+    /**
+     * 
+     * @param {role} Jabatan yang sub Jabatannya akan di isi
+     * @returns 
+     */
     buildPopulate = async (role) => {
         // Populate the 'sub' field with 'name' and 'sub'
         role = await Role.populate(role, {
@@ -90,6 +152,10 @@ class RoleController {
         return role;
     }
     
+    /**
+     * 
+     * @returns Semua top-level Jabatan sebagai menu utama
+     */
     getMenu = async () => {
         // Fetch all top-level roles
         let menu = await Role.find({ isTopLevel: true }).select('name sub');
