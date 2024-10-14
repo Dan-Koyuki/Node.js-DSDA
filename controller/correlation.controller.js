@@ -1,42 +1,51 @@
-import Correlation from "../models/correlation.model";
+import Correlation from "../models/correlation.model.js";
+import CustomError from "../utility/customError.js";
 
 class CorrelationController {
-    create = async ({roleName, unit, term}) => {
-        if (!roleName || !unit || !term) {
-            throw new CustomError ("Data tidak lengkap!", 400);
+    /**
+     * 
+     * @param {Array} newDataArray - Array of new data (correlation entries)
+     * @param {Array} oldArrayID - Array of old IDs
+     * @returns {Array} - Updated array of IDs
+     */
+    update = async (newData, oldArrayID) => {
+        let newArrayID = [...oldArrayID]; // Copy the old IDs
+
+        for (const data of newData.dataArray) { // Correct iteration
+            const correlation = new Correlation({
+                roleName: data.roleName,
+                unit: data.unit,
+                term: data.term
+            });
+
+            await correlation.save(); // Save the new correlation document
+
+            newArrayID.push(correlation._id); // Add the new _id to the array
         }
 
-        const correlation = new Correlation({
-            roleName: roleName,
-            unit: unit,
-            term: term
-        });
+        return newArrayID; // Return the updated array of IDs
+    };
 
-        await correlation.save()
-
-        return correlation;
-    }
-
-    update = async ({data, id}) => {
-        if (!id) {
-            return await this.create(data);
-        } else {
-            let correlation = await Correlation.findById(id);
-            if (!correlation) {
-                throw new CustomError ("Form Tidak Ditemukan", 404)
-            }
-
-            correlation.roleName = data.roleName;
-            correlation.unit = data.unit;
-            correlation.term = data.term;
-
-            await correlation.save();
-
-            return correlation;
+    /**
+     * 
+     * @param {String} id - ID of the correlation to delete
+     * @param {Array} oldArrayID - Array of old IDs
+     * @returns {Array} - Updated array after deletion
+     */
+    delete = async (idToDelete, oldArrayID) => {
+        const correlation = await Correlation.findByIdAndDelete(idToDelete);
+        
+        if (!correlation) {
+            throw new CustomError('Correlation not found', 404);
         }
-    }
+    
+        // Filter the oldArrayID to exclude the idToDelete
+        const newArrayID = oldArrayID.filter(id => id.toString() !== idToDelete.toString());
+    
+        return newArrayID;
+    };
 }
 
 const correlationController = new CorrelationController();
 
-export correlationController
+export default correlationController;

@@ -33,9 +33,24 @@ RoleRoute.post("/add-sub", async (req, res) => {
     }
 });
 
+RoleRoute.put("/edit-role", async (req, res) => {
+    try {
+        const response = await roleController.editRole(req.body);
+        res.status(response.statusCode).json({
+            status: "Success",
+            data: response.data
+        })
+    } catch (error) {
+        res.status(error.statusCode).json({
+            status:"Fail",
+            error: error.message
+        })
+    }
+})
+
 RoleRoute.get("/menu", async (req, res) => {
     try {
-        const response = await roleController.getMenu();
+        const response = await roleController.getTopLevelMenu();
         res.status(response.statusCode).json({
             status: "Success",
             data: response.data,

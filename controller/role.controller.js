@@ -2,6 +2,16 @@ import Role from "../models/role.model.js";
 import CustomError from "../utility/customError.js"
 import authorityController from "./authority.controller.js";
 import classController from "./class.controller.js";
+import correlationController from "./correlation.controller.js";
+import dataController from "./data.controller.js";
+import hopeController from "./hope.controller.js";
+import jobController from "./job.controller.js";
+import materialController from "./material.controller.js";
+import requirementController from "./requirement.controller.js";
+import responsibilityController from "./responsibility.controller.js";
+import resultController from "./result.controller.js";
+import riskController from "./risk.controller.js";
+import setController from "./set.controller.js";
 
 class RoleController {
     /**
@@ -85,39 +95,93 @@ class RoleController {
         }
     }
 
-    editRole = async ({name, updateInfo}) => {
-        let role = await Role.findOne({name: name});
+    editRole = async ({id, updateInfo, actionKey}) => {
+
+        /**
+         * updateInfo = {
+         *  data: <array of object> || <object> OR <id> if actionKey === 'delete'
+         *  key: <string> (one field of updateRoute)
+         *  name: <string> (one field in role object)
+         * }
+         * actionKey = <string> ('delete' or 'update)
+         */
+
+        /**
+         * example of updateInfo object for array field
+         * updateInfo = {
+         *  data: {
+         *      dataArray: [
+         *                      {obj1}, {obj2}
+         *                  ]
+         *  },
+         *  key: 'AU,
+         *  name: 'authority'
+         * }
+         */
+
+        /**
+         * example of updateInfo object for non-array field
+         * updateInfo = {
+         *  data: {
+         *      jobName: 'author'
+         *  },
+         *  key: 'CL,
+         *  name: 'class'
+         * }
+         */
+
+        let role = await Role.findById(id);
         if (!role) {
             throw new CustomError("Jabatan tidak ditemukan!", 404);  // Better to throw an error if the role doesn't exist
         }
     
         const updateRoute = {
-            AU: authorityController.update,   // function to update Authority
+            AU: authorityController.update,   // function to update Authority - Array
             CL: classController.update,   // function to update Class
-            CR: () => {},   // function to update Correlation
-            DT: () => {},   // function to update Data
-            HO: () => {},   // function to update Hope
-            JB: () => {},   // function to update Job
-            MT: () => {},   // function to update Material
-            RE: () => {},   // function to update Requirement
-            RS: () => {},   // function to update Responsibility
-            RT: () => {},   // function to update Result
-            RK: () => {},   // function to update Risk
-            ST: () => {},   // function to update Set
+            CR: correlationController.update,   // function to update Correlation - Array
+            DT: dataController.update,   // function to update Data
+            HO: hopeController.update,   // function to update Hope
+            JB: jobController.update,   // function to update Job
+            MT: materialController.update,   // function to update Material - Array
+            RE: requirementController.update,   // function to update Requirement
+            RS: responsibilityController.update,   // function to update Responsibility - Array
+            RT: resultController.update,   // function to update Result - Array
+            RK: riskController.update,   // function to update Risk - Array
+            ST: setController.update,   // function to update Set - Array
         };
+
+        const deleteRoute = {
+            AU: authorityController.delete,   // function to delete Authority - Array
+            CR: correlationController.delete,   // function to delete Correlation - Array
+            MT: materialController.delete,   // function to delete Material - Array
+            RS: responsibilityController.delete,   // function to delete Responsibility - Array
+            RT: resultController.delete,   // function to delete Result - Array
+            RK: riskController.delete,   // function to delete Risk - Array
+            ST: setController.delete,   // function to delete Set - Array
+        }
+
+        let result;
+        const fieldInfo = role[updateInfo.name];
     
-        const updateFunction = updateRoute[updateInfo.key];
-        const updateFieldID = role[updateInfo.name];
-        
-        let updateResult;
-    
-        if (updateFunction) {
-            updateResult = await updateFunction({data: updateInfo.data, id: updateFieldID});  // Pass correct params
+        if (actionKey === 'update') {
+            const updateFunction = updateRoute[updateInfo.key];
+            if (updateFunction) {
+                result = await updateFunction(updateInfo.data, fieldInfo);  // Pass correct params
+            } else {
+                throw new CustomError("Invalid update key!", 400);
+            }
+        } else if (actionKey === 'delete') {
+            const deleteFunction = deleteRoute[updateInfo.key];
+            if (deleteFunction) {
+                result = await deleteFunction(updateInfo.data, fieldInfo);
+            } else {
+                throw new CustomError("Invalid delete key!", 400);
+            }
         } else {
-            throw new CustomError("Invalid update key!", 400);
+            throw new CustomError("invalid action key!", 400)
         }
     
-        role[updateInfo.name] = updateResult._id;  // Update the specific field with the result
+        role[updateInfo.name] = result;  // Update the specific field with the result
     
         await role.save();  // Save the updated role
     
@@ -125,7 +189,7 @@ class RoleController {
             statusCode: 200,
             data: {
                 message: "Update Complete!",
-                role: role._id
+                role: role
             }
         };
     };
@@ -157,32 +221,9 @@ class RoleController {
      * 
      * @returns Semua top-level Jabatan sebagai menu utama
      */
-    getMenu = async () => {
-        // Fetch all top-level roles
-        let menu = await Role.find({ isTopLevel: true }).select('name sub');
-
-        // Populate sub-roles recursively
-        for (let i = 0; i < menu.length; i++) {
-
-            // Check if menu[i] is falsy or if sub is empty, and skip to the next iteration
-            if (!menu[i]) {
-                console.warn(`Menu item at index ${i} is null or undefined.`);
-                continue; // Skip this iteration and go to the next one
-            }
-
-            if (!Array.isArray(menu[i].sub) || menu[i].sub.length === 0) {
-                console.warn(`Menu item at index ${i} has no sub-roles.`);
-                continue; // Skip this iteration if there's nothing to populate
-            }
-
-            // Populate the sub if it exists
-            try {
-                menu[i] = await this.buildPopulate(menu[i]);
-            } catch (error) {
-                console.error(`Error while populating role at index ${i}:`, error);
-            }
-        }
-
+    getTopLevelMenu = async () => {
+        let menu = await Role.find({ isTopLevel: true }).select('name sub'); // No population here
+        
         return {
             statusCode: 200,
             data: {
@@ -190,6 +231,7 @@ class RoleController {
             }
         };
     };
+    
 }
 
 const roleController = new RoleController();
