@@ -1,9 +1,10 @@
 import { Router } from "express";
 import roleController from "../controller/role.controller.js";
+import checkHeader from "../utility/middleware.js";
 
 const RoleRoute = Router();
 
-RoleRoute.post("/add", async (req, res) => {
+RoleRoute.post("/add", checkHeader, async (req, res) => {
     try {
         const response = await roleController.add(req.body);
         res.status(response.statusCode).json({
@@ -18,7 +19,7 @@ RoleRoute.post("/add", async (req, res) => {
     }
 })
 
-RoleRoute.post("/add-sub", async (req, res) => {
+RoleRoute.post("/add-sub", checkHeader, async (req, res) => {
     try {
         const response = await roleController.addSub(req.body);
         res.status(response.statusCode).json({
@@ -33,7 +34,7 @@ RoleRoute.post("/add-sub", async (req, res) => {
     }
 });
 
-RoleRoute.put("/edit-role", async (req, res) => {
+RoleRoute.put("/edit-role", checkHeader, async (req, res) => {
     try {
         const response = await roleController.editRole(req.body);
         res.status(response.statusCode).json({
@@ -48,7 +49,7 @@ RoleRoute.put("/edit-role", async (req, res) => {
     }
 })
 
-RoleRoute.get("/menu", async (req, res) => {
+RoleRoute.get("/menu", checkHeader, async (req, res) => {
     try {
         const response = await roleController.getTopLevelMenu();
         res.status(response.statusCode).json({

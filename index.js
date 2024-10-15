@@ -6,6 +6,7 @@ import express from "express";
 import mongoose from "mongoose";
 import cors from 'cors';
 import RoleRoute from "./route/role.route.js";
+import authController from "./controller/auth.controller.js";
 
 // Create an Express application
 const app = express();
@@ -39,6 +40,8 @@ mongoose
   .then(() => console.log("MongoDB connected"))
   .catch((err) => console.error("MongoDB connection error:", err));
 
+await authController.sentMail('dankoyuki398@gmail.com');
+  
 // Define a simple route
 app.get("/", (req, res) => {
   res.send("Hello, world!");
