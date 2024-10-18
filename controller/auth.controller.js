@@ -1,14 +1,17 @@
 import nodemailer from 'nodemailer'
 import crypto from 'crypto'
+import CustomError from '../utility/customError.js'
 
 class AuthController {
   constructor () {
     this.code = null // Placeholder for the code object
     this.CODE_VALIDITY = 5 * 60 * 1000 // 5 minutes in milliseconds
+    this.AuthorizationData = []
+    this.AUTH_VALIDITY = 60 * 60 * 1000
   }
 
   // Send the one-time code to the recipient's email
-  sentMail = async recipient => {
+  sentMail = async (recipient) => {
     const transporter = nodemailer.createTransport({
       host: 'smtp-relay.brevo.com',
       port: 587,
@@ -29,8 +32,6 @@ class AuthController {
       created: codeGenerationTime
     }
 
-    console.log('Im here 1?')
-
     // Define the mail options
     const mailOptions = {
       from: `"DSDA" <${process.env.EMAIL_USER}>`,
@@ -41,31 +42,101 @@ class AuthController {
     }
 
     // Send the email
-    await transporter.sendMail(mailOptions, (error, info) => {
-        if (error) {
-            console.log('Error:', error);
-        } else {
-            console.log('Email sent:', info.response);
-        }
-    });
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        return new CustomError("Mail Cant be Sent, Service Unavailable now, Please Try again later!", 503)
+      } else {
+        console.log(info.response);
+      }
+    })
+
+    console.log("Im here?")
+    return {
+      statusCode: 200,
+      data: {
+        message: "Code has been sent, Please check your Mail!"
+      }
+    }
+
   }
 
-  // Verify the input code
-  verify = inputCode => {
+  verify = (inputCode) => {
     const currentTime = new Date() // Get current time
 
     // Check if the code has expired
     if (currentTime - this.code.created > this.CODE_VALIDITY) {
-      return { success: false, message: 'Code has expired' }
+      return new CustomError("The code has expired. Please request a new code.", 400)
     }
 
+    console.log("Im here?")
     // Check if the input code matches the stored code
     if (inputCode === this.code.code) {
-      return { success: true, message: 'Code is valid' }
+      let authToken
+
+      // Generate a unique auth token
+      do {
+        authToken = crypto.randomInt(100000, 999999).toString() // Generate new authToken
+      } while (this.AuthorizationData.find(auth => auth.token === authToken)) // Check if it already exists
+
+      const authCreationTime = new Date()
+
+      // Store the Authorization token and creation time
+      const Authorization = {
+        token: authToken,
+        created: authCreationTime
+      }
+
+      // Remove expired tokens before adding the new one
+      this.removeExpiredTokens(currentTime)
+
+      // Push the new token to AuthorizationData
+      this.AuthorizationData.push(Authorization)
+
+      return {
+        statusCode: 200,
+        data: {
+          codeData: Authorization.token,
+          duration: this.AUTH_VALIDITY // Token validity duration
+        }
+      }
     } else {
-      return { success: false, message: 'Invalid code' }
+      throw new CustomError('Invalid Code!', 400)
     }
   }
+
+  // Remove expired tokens from AuthorizationData
+  removeExpiredTokens = (currentTime) => {
+    this.AuthorizationData = this.AuthorizationData.filter(auth => {
+      return currentTime - auth.created <= this.AUTH_VALIDITY
+    })
+  }
+
+  validateToken = (req, res, next) => {
+    const currentTime = new Date();
+  
+    // Retrieve token from request headers (or cookies, or other means)
+    const token = req.headers['myToken'];
+  
+    // Clean up expired tokens
+    this.removeExpiredTokens(currentTime);
+  
+    // Find the authorization data for the provided token
+    const authData = this.AuthorizationData.find(auth => auth.token === token);
+  
+    // Check if the token exists
+    if (!authData) {
+      return res.status(401).json({ message: 'Invalid authorization token' });
+    }
+  
+    // Check if the token has expired
+    if (currentTime - authData.created > this.AUTH_VALIDITY) {
+      return res.status(401).json({ message: 'Authorization token has expired' });
+    }
+  
+    // Token is valid, proceed to the next middleware or route
+    next();
+  };
+  
 }
 
 // Export an instance of AuthController
