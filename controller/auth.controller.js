@@ -41,23 +41,20 @@ class AuthController {
       html: `<p>Your login code is <b>${oneTimeCode}</b>. It will expire in 5 minutes.</p>` // HTML body
     }
 
-    // Send the email
-    transporter.sendMail(mailOptions, (error, info) => {
-      if (error) {
-        return new CustomError("Mail Cant be Sent, Service Unavailable now, Please Try again later!", 503)
-      } else {
-        console.log(info.response);
-      }
-    })
-
-    console.log("Im here?")
-    return {
-      statusCode: 200,
-      data: {
-        message: "Code has been sent, Please check your Mail!"
-      }
+    try {
+      const info = await transporter.sendMail(mailOptions);
+      console.log("Email sent:", info);
+  
+      return {
+        statusCode: 200,
+        data: {
+          message: info.response // Use info.response to capture the response
+        }
+      };
+    } catch (error) {
+      console.error("Error sending email:", error);
+      throw new CustomError("Mail can't be sent, service unavailable now. Please try again later!", 503);
     }
-
   }
 
   verify = (inputCode) => {
